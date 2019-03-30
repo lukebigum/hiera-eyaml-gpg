@@ -4,15 +4,15 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'hiera/backend/eyaml/encryptors/gpg/version'
 
 Gem::Specification.new do |gem|
-  gem.name          = "hiera-eyaml-gpg-native"
+  gem.name          = "hiera-eyaml-gpg"
   gem.version       = Hiera::Backend::Eyaml::Encryptors::Gpg::VERSION
   gem.description   = "GPG encryptor for use with hiera-eyaml"
-  gem.summary       = "Encryption plugin for hiera-eyaml backend for Hiera"
+  gem.summary       = "Encryption plugin for hiera-eyaml backend for Hiera, specifically for Puppet Server 6.x"
   gem.author        = "Luke Bigum"
   gem.license       = "MIT"
 
-  gem.homepage      = "http://github.com/sihil/hiera-eyaml-gpg-native"
-  gem.files         = `git ls-files`.split($/)
+  gem.homepage      = "http://github.com/lukebigum/hiera-eyaml-gpg_native"
+  gem.files         = `git ls-files`.split($/).reject{ |f| f.match(%r{^tools}) }
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]

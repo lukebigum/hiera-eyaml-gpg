@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Rebuild a GPG keyring of all our GPG keys, with the secret key of a given user (writeable for that user)
+
+for GPGUSER in user1 user2; do
+  KEYSDIR="$(dirname $0)/user_keys/"
+  GPGDIRNAME="$(dirname $0)/.eyaml-gpg-${GPGUSER}"
+  GPGDIR="$(dirname $0)/${GPGDIRNAME}"
+  RECIPIENTS_FILENAME="hiera-eyaml-gpg.recipients"
+  RECIPIENTS_FILE="$(dirname $0)/${RECIPIENTS_FILENAME}"
+
+  #delete the keyring and recipients file if it exists
+  if [[ -d ${GPGDIR} ]]; then
+    rm -Rf ${GPGDIR}
+  fi
+
+  mkdir ${GPGDIR}
+  chmod 0700 ${GPGDIR}
+
+  GPGVERSION=$(gpg --version | grep ^gpg | awk {'print $3'})
+  GPGMAJORVERSION=$(echo $GPGVERSION | awk -F. {'print $1'})
+
+  #Create the keyring
+  gpg --homedir ${GPGDIR} --import ${KEYSDIR}/*.gpg
+
+  #Generate the recipients file based on the IDs of the keys we imported
+  if [ $GPGMAJORVERSION -eq 1 ] ; then
+    gpg --homedir ${GPGDIR} --list-public-keys --with-colons | grep -P '^pub' | awk -F: '{print $10}' > ${RECIPIENTS_FILE}
+  else
+    gpg --homedir ${GPGDIR} --list-public-keys --with-colons | grep -P '^uid' | awk -F: '{print $10}' > ${RECIPIENTS_FILE}
+  fi
+
+  rm -f ${GPGUSER}.key
+  gpg --homedir ${GPGUSER}-gpg-dir --export-secret-key ${GPGUSER} > ./${GPGUSER}.key
+  gpg --homedir ${GPGDIR} --allow-secret-key-import --import ${GPGUSER}.key
+  RET=$?
+  rm -f ${GPGUSER}.key
+
+  if [[ ${RET} == "0" ]]; then
+    echo "Secret Key imported successfully for ${GPGUSER}."
+  elif [[ ${RET} == "2" ]]; then
+    echo "Secret Key already imported for ${GPGUSER}."
+  else
+    echo "Error: problem importing Secret Key for ${GPGUSER}."
+  fi
+done

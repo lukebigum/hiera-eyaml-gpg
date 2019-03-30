@@ -7,3 +7,5 @@ tmp/
 .DS_Store
 .ruby-version
 Gemfile.lock
+tools/.eyaml-gpg-user1
+tools/.eyaml-gpg-user2

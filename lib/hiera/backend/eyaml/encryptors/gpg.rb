@@ -1,11 +1,6 @@
 begin
   require 'gpgme'
 rescue LoadError
-  begin
-    require 'ruby_gpg'
-  rescue LoadError
-    fail "hiera-eyaml-gpg requires either the 'gpgme' or 'ruby_gpg' gem"
-  end
 end
 
 require 'base64'
@@ -13,6 +8,7 @@ require 'pathname'
 require 'hiera/backend/eyaml/encryptor'
 require 'hiera/backend/eyaml/utils'
 require 'hiera/backend/eyaml/options'
+require 'puppet'
 
 class Hiera
   module Backend
@@ -33,7 +29,10 @@ class Hiera
             :recipients => { :desc => "List of recipients (comma separated)",
                              :type => :string },
             :recipients_file => { :desc => "File containing a list of recipients (one on each line)",
-                             :type => :string }
+                             :type => :string },
+            :force_native => { :desc => "Force using the native GPG decryptor, not gpgme",
+                               :type => :boolean,
+                               :default => false }
           }
 
           @@passphrase_cache = Hash.new
@@ -59,7 +58,7 @@ class Hiera
 
           def self.gnupghome
             gnupghome = self.option :gnupghome
-            debug("GNUPGHOME is #{gnupghome}")
+            LoggingHelper.debug "GNUPGHOME is #{gnupghome}"
             if gnupghome.nil? || gnupghome.empty?
               warn("No GPG home directory configured, check gpg_gnupghome configuration value is correct")
               raise ArgumentError, "No GPG home directory configured, check gpg_gnupghome configuration value is correct"
@@ -160,11 +159,12 @@ class Hiera
           end
 
           def self.decrypt ciphertext
+            LoggingHelper.debug "GPG decrypt starting"
             gnupghome = self.gnupghome
 
-            unless defined?(GPGME)
-              RubyGpg.config.homedir = gnupghome if gnupghome
-              return RubyGpg.decrypt_string(ciphertext)
+            if self.option(:force_native) or not defined?(GPGME)
+              LoggingHelper.debug "Native decryption starting"
+              return decrypt_string(ciphertext)
             end
 
             GPGME::Engine.home_dir = gnupghome
@@ -201,6 +201,34 @@ class Hiera
             STDERR.puts "The GPG encryptor does not support creation of keys, use the GPG command lines tools instead"
           end
 
+          def self.decrypt_string(string, passphrase = nil)
+            command = [
+              'gpg',
+              '--homedir', self.gnupghome,
+              '--quiet',
+              '--no-secmem-warning',
+              '--no-permission-warning',
+              '--no-tty',
+              '--yes',
+              '--batch'
+            ]
+            command << '--passphrase' << passphrase if passphrase
+
+            f = Tempfile.new('gpg_native')
+            f.sync = true
+            output = nil
+            begin
+              f.write(string)
+              opts = { combine: true, stdinfile: f.path, failonfail: true }
+              command << '--decrypt'
+              LoggingHelper.debug "gpg exec command: #{command}"
+              output = Puppet::Util::Execution.execute(command, opts)
+              LoggingHelper.debug "Got '#{output}' back from gpg command"
+            ensure
+              f.close!
+            end
+            return output
+          end
         end
 
       end

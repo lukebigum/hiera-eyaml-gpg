@@ -1,0 +1,2 @@
+#!/bin/bash
+eyaml $@ test.yaml -n gpg --gpg-gnupghome $(dirname $0)/.eyaml-gpg-user2/ --gpg-always-trust --gpg-recipients-file $(dirname $0)/hiera-eyaml-gpg.recipients -v -t
