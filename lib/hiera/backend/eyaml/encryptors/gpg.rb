@@ -219,12 +219,17 @@ class Hiera
             output = nil
             begin
               f.write(string)
-              opts = { combine: true, stdinfile: f.path, failonfail: true }
+              f.rewind
+              f.close
+              f.open
+              opts = { combine: true, failonfail: true }
               command << '--decrypt'
+              command << f.path
               LoggingHelper.debug "gpg exec command: #{command}"
               output = Puppet::Util::Execution.execute(command, opts)
-              LoggingHelper.debug "Got '#{output}' back from gpg command"
+              #LoggingHelper.debug "Got '#{output}' back from gpg command"
             ensure
+              f.unlink
               f.close!
             end
             return output
