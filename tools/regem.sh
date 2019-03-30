@@ -1,6 +1,6 @@
 #!/bin/bash
 
-gem uninstall hiera-eyaml-gpg
+gem uninstall hiera-eyaml-gpg-native
 rake build
-gem install pkg/hiera-eyaml-gpg
+gem install pkg/hiera-eyaml-gpg-native
 eyaml -v

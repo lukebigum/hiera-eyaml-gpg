@@ -1,7 +1,10 @@
-hiera-eyaml-gpg
-===============
+hiera-eyaml-gpg-native
+======================
 
 GPG encryption backend for the [hiera-eyaml](https://github.com/TomPoulton/hiera-eyaml) module.
+
+A fork of [hiera-eyaml-gpg](https://github.com/sihil/hiera-eyaml-gpg) to work around
+[SERVER-2021](https://tickets.puppetlabs.com/browse/SERVER-2021) and [SERVER-2167](https://tickets.puppetlabs.com/browse/SERVER-2167).
 
 Motivation
 ----------
@@ -24,17 +27,6 @@ keys that you want to work
 To get started, install the hiera-eyaml-gpg gem.
 
     $ gem install hiera-eyaml-gpg
-
-You will also need to install either the `gpgme` (recommended) or `ruby_gpg` gem:
-
-    $ gem install gpgme
-
-OR
-
-    $ gem install ruby_gpg -v ">=0.3.1"
-
-Note: you will need to use `ruby_gpg` with the Puppet server as it uses JRuby which cannot
-make use of native extensions such as `gpgme`.
 
 If you haven't already installed it, this requires and will install the hiera-eyaml gem, which you
 should probably acquaint yourself with at https://github.com/TomPoulton/hiera-eyaml.
@@ -76,6 +68,7 @@ that the private GPG key must not have a passphrase.
 Authors
 -------
 
+ - Luke Bigum - modified to call native Puppet functions
  - Simon Hildrew - Initial code
  - Geoff Meakins - Created hiera-eyaml plugin framework that made this possible
 
