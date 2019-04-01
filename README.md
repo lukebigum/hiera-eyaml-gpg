@@ -1,5 +1,5 @@
-hiera-eyaml-gpg-native
-======================
+hiera-eyaml-gpg
+===============
 
 GPG encryption backend for the [hiera-eyaml](https://github.com/TomPoulton/hiera-eyaml) module.
 
